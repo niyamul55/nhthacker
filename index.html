@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="bn">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -84,7 +84,7 @@ button:hover{background:#00cc77;}
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-import { getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
 import { getFirestore, doc, setDoc, addDoc, collection, updateDoc, arrayUnion, arrayRemove, getDoc, onSnapshot, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-storage.js";
 
@@ -114,39 +114,51 @@ function showNotification(msg,type="error"){
   setTimeout(()=>{ notif.classList.remove('show'); notif.classList.add('hidden'); },3000);
 }
 
-document.getElementById('googleLoginBtn').addEventListener('click',()=>{
-  signInWithRedirect(auth,provider);
+// ================ Google Login (Popup) ================
+document.getElementById('googleLoginBtn').addEventListener('click', async ()=>{
+  try {
+    const result = await signInWithPopup(auth, provider);
+    const user = result.user;
+    await setDoc(doc(db,'users',user.uid),{
+      name: user.displayName,
+      email: user.email,
+      photo: user.photoURL,
+      role: user.email===adminEmail?"admin":"user",
+      online:true,
+      blocked:[]
+    }, { merge:true });
+    showNotification("Login successful","success");
+  } catch(e){
+    showNotification(e.message);
+  }
 });
 
-getRedirectResult(auth).then(async(result)=>{
-  if(result && result.user){
-    const user=result.user;
-    await setDoc(doc(db,'users',user.uid),{
-      name:user.displayName,email:user.email,photo:user.photoURL,
-      role:user.email===adminEmail?"admin":"user",
-      online:true,blocked:[]
-    },{merge:true});
-    showNotification("Login successful","success");
-  }
-}).catch(e=>showNotification(e.message));
-
+// ================ Auth State Listener ================
 onAuthStateChanged(auth, async(user)=>{
   if(user){
-    const docRef=doc(db,"users",user.uid);
+    const docRef = doc(db,"users",user.uid);
     await updateDoc(docRef,{online:true,lastSeen:serverTimestamp()});
+
     if(user.email===adminEmail){
       document.getElementById('authContainer').classList.add('hidden');
       document.getElementById('adminPanel').classList.remove('hidden');
-    }else{
+    } else {
       document.getElementById('authContainer').classList.add('hidden');
       document.getElementById('userPanel').classList.remove('hidden');
       document.getElementById('usersPanel').classList.remove('hidden');
       startRealtimePosts();
       startRealtimeUsers();
     }
+  } else {
+    document.getElementById('authContainer').classList.remove('hidden');
+    document.getElementById('adminPanel').classList.add('hidden');
+    document.getElementById('userPanel').classList.add('hidden');
+    document.getElementById('usersPanel').classList.add('hidden');
+    document.getElementById('chatPanel').classList.add('hidden');
   }
 });
 
+// ================ Create Post ================
 async function createPost(){
   const title=document.getElementById('postTitle').value.trim();
   const desc=document.getElementById('postDesc').value.trim();
@@ -165,6 +177,7 @@ async function createPost(){
   document.getElementById('postMedia').value="";
 }
 
+// ================ Real-time Posts ================
 function startRealtimePosts(){
   const container=document.getElementById('postsContainer');
   const q=query(collection(db,'posts'),orderBy("timestamp","desc"));
@@ -197,12 +210,12 @@ function startRealtimePosts(){
   });
 }
 
+// ================ Like & Comment ================
 async function likePost(postId){
   const postRef=doc(db,'posts',postId);
   const postSnap=await getDoc(postRef);
   if(postSnap.exists()) await updateDoc(postRef,{likes:(postSnap.data().likes||0)+1});
 }
-
 async function addComment(postId){
   const input=document.getElementById(`comment_${postId}`);
   const text=input.value.trim(); if(!text) return;
@@ -211,6 +224,7 @@ async function addComment(postId){
   input.value="";
 }
 
+// ================ Real-time Users ================
 function startRealtimeUsers(){
   const list=document.getElementById("usersList");
   const meRef = doc(db,"users",auth.currentUser.uid);
@@ -223,7 +237,6 @@ function startRealtimeUsers(){
         if(u.email === auth.currentUser.email) return;
         if(auth.currentUserBlocked.includes(uSnap.id)) return;
         const isBlockedByThem = (u.blocked||[]).includes(auth.currentUser.uid);
-
         list.innerHTML += `
           <div>
             <img src="${u.photo}" width="30" style="border-radius:50%"> 
@@ -239,34 +252,27 @@ function startRealtimeUsers(){
   });
 }
 
+// ================ Block / Unblock ================
 async function blockUser(uid){
-  await updateDoc(doc(db,"users",auth.currentUser.uid),{
-    blocked: arrayUnion(uid)
-  });
+  await updateDoc(doc(db,"users",auth.currentUser.uid),{blocked: arrayUnion(uid)});
   showNotification("User blocked","success");
 }
-
 async function unblockUser(uid){
-  await updateDoc(doc(db,"users",auth.currentUser.uid),{
-    blocked: arrayRemove(uid)
-  });
+  await updateDoc(doc(db,"users",auth.currentUser.uid),{blocked: arrayRemove(uid)});
   showNotification("User unblocked","success");
 }
 
-// ===== Chat System =====
+// ================ Chat System ================
 function getChatId(uid1,uid2){ return uid1 < uid2 ? `${uid1}_${uid2}` : `${uid2}_${uid1}`; }
-
 async function openChat(toUid,toName){
   const meSnap = await getDoc(doc(db,"users",auth.currentUser.uid));
   const toSnap = await getDoc(doc(db,"users",toUid));
 
   if(meSnap.data().blocked?.includes(toUid)){
-    showNotification("You have blocked this user","error"); 
-    return;
+    showNotification("You have blocked this user","error"); return;
   }
   if(toSnap.data().blocked?.includes(auth.currentUser.uid)){
-    showNotification("You are blocked by this user","error");
-    return;
+    showNotification("You are blocked by this user","error"); return;
   }
 
   currentChatUser = toUid;
@@ -286,7 +292,6 @@ async function openChat(toUid,toName){
     box.scrollTop = box.scrollHeight;
   });
 }
-
 async function sendMessage(){
   const text = document.getElementById("chatMessage").value.trim();
   if(!text || !currentChatUser) return;
@@ -310,7 +315,7 @@ async function sendMessage(){
   document.getElementById("chatMessage").value="";
 }
 
-// ===== Logout =====
+// ================ Logout ================
 function logout(){
   const userRef = doc(db,"users",auth.currentUser.uid);
   updateDoc(userRef,{online:false});
@@ -323,5 +328,6 @@ function logout(){
   });
 }
 </script>
+
 </body>
 </html>
