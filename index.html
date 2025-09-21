@@ -1,333 +1,358 @@
 <!DOCTYPE html>
-<html lang="bn">
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NHT Hacker Platform</title>
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
-*{box-sizing:border-box;margin:0;padding:0;}
-body{
-  font-family:'Share Tech Mono',monospace;
-  background: linear-gradient(135deg,#1e1e2f,#3a3a5a);
-  color:#fff;
-  min-height:100vh;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  padding:20px;
-}
-#pageTitle{font-size:42px;color:#00ff99;font-weight:bold;margin-bottom:20px;letter-spacing:3px;}
-.container{background: rgba(0,0,0,0.85);padding: 20px 25px;border-radius: 15px;box-shadow: 0 8px 20px rgba(0,0,0,0.5);width: 100%;max-width:500px;text-align: center;margin-bottom:20px;}
-h2{color:#00ff99;margin-bottom:15px;}
-input,textarea{width:100%;padding:10px;margin:8px 0;border-radius:8px;border:none;outline:none;background:#1f1f2f;color:#fff;font-size:16px;}
-button{width:100%;padding:10px;margin-top:8px;border:none;border-radius:8px;background:#00ff99;color:#000;font-weight:bold;cursor:pointer;font-size:16px;transition:0.3s;}
-button:hover{background:#00cc77;}
-#notification{position:fixed;top:20px;right:20px;padding:12px 20px;border-radius:8px;box-shadow:0 4px 15px rgba(0,0,0,0.3);opacity:0;transition:0.5s;z-index:9999;}
-#notification.show{opacity:1;transform:translateY(0);}
-#notification.hidden{opacity:0;transform:translateY(-20px);}
-.post{background:#2a2a3a;padding:12px;margin:12px 0;border-radius:8px;text-align:left;}
-.post h3{color:#00ff99;margin:0;}
-.post p{color:#fff;margin:5px 0;}
-.comments{margin-top:8px;border-top:1px solid #444;padding-top:8px;}
-.usersList{margin-top:10px;text-align:left;max-height:200px;overflow-y:auto;}
-.chatBox{background:#1f1f2f;padding:10px;margin-top:10px;height:250px;overflow-y:auto;border-radius:8px;text-align:left;}
-.chatInput{display:flex;margin-top:8px;}
-.chatInput input{flex:1;margin-right:5px;}
-.hidden{display:none;}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NHT Hacker Platform</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{
+      font-family:'Share Tech Mono',monospace;
+      background: linear-gradient(135deg,#1e1e2f,#3a3a5a);
+      color:#fff;
+      min-height:100vh;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      padding:20px;
+    }
+    #pageTitle{font-size:42px;color:#00ff99;font-weight:bold;margin-bottom:20px;letter-spacing:3px;}
+    .container{background: rgba(0,0,0,0.85);padding: 20px 25px;border-radius: 15px;box-shadow: 0 8px 20px rgba(0,0,0,0.5);width: 100%;max-width:500px;text-align: center;margin-bottom:20px;}
+    h2{color:#00ff99;margin-bottom:15px;}
+    input,textarea{width:100%;padding:10px;margin:8px 0;border-radius:8px;border:none;outline:none;background:#1f1f2f;color:#fff;font-size:16px;}
+    button{width:100%;padding:10px;margin-top:8px;border:none;border-radius:8px;background:#00ff99;color:#000;font-weight:bold;cursor:pointer;font-size:16px;transition:0.3s;}
+    button:hover{background:#00cc77;}
+    #notification{position:fixed;top:20px;right:20px;padding:12px 20px;border-radius:8px;box-shadow:0 4px 15px rgba(0,0,0,0.3);opacity:0;transition:0.5s;z-index:9999;}
+    #notification.show{opacity:1;transform:translateY(0);}
+    #notification.hidden{opacity:0;transform:translateY(-20px);}
+    .post{background:#2a2a3a;padding:12px;margin:12px 0;border-radius:8px;text-align:left;}
+    .post h3{color:#00ff99;margin:0;}
+    .post p{color:#fff;margin:5px 0;}
+    .comments{margin-top:8px;border-top:1px solid #444;padding-top:8px;}
+    .usersList{margin-top:10px;text-align:left;max-height:200px;overflow-y:auto;}
+    .chatBox{background:#1f1f2f;padding:10px;margin-top:10px;height:250px;overflow-y:auto;border-radius:8px;text-align:left;}
+    .chatInput{display:flex;margin-top:8px;}
+    .chatInput input{flex:1;margin-right:5px;}
+    .hidden{display:none;}
+  </style>
 </head>
 <body>
 
-<div id="pageTitle">NHT Hacker</div>
+  <div id="pageTitle">NHT Hacker</div>
 
-<!-- Login -->
-<div class="container" id="authContainer">
-  <h2>Login</h2>
-  <button id="googleLoginBtn">Sign in with Google</button>
-</div>
-
-<!-- Admin Panel -->
-<div class="container hidden" id="adminPanel">
-  <h2>Admin Panel</h2>
-  <input type="text" id="postTitle" placeholder="Post Title">
-  <textarea id="postDesc" placeholder="Post Description"></textarea>
-  <input type="file" id="postMedia" multiple>
-  <button onclick="createPost()">Upload Post</button>
-  <button onclick="logout()">Logout</button>
-</div>
-
-<!-- User Panel -->
-<div class="container hidden" id="userPanel">
-  <h2>User Feed</h2>
-  <div id="postsContainer"></div>
-  <button onclick="logout()">Logout</button>
-</div>
-
-<!-- Online Users -->
-<div class="container hidden" id="usersPanel">
-  <h2>Online Users</h2>
-  <div id="usersList" class="usersList"></div>
-</div>
-
-<!-- Chat Panel -->
-<div class="container hidden" id="chatPanel">
-  <h2 id="chatWith">Chat</h2>
-  <div id="chatBox" class="chatBox"></div>
-  <div class="chatInput">
-    <input type="text" id="chatMessage" placeholder="Type message">
-    <button onclick="sendMessage()">Send</button>
+  <!-- Login -->
+  <div class="container" id="authContainer">
+    <h2>Login</h2>
+    <button id="googleLoginBtn">Sign in with Google</button>
   </div>
-</div>
 
-<div id="notification"></div>
+  <!-- Admin Panel -->
+  <div class="container hidden" id="adminPanel">
+    <h2>Admin Panel</h2>
+    <input type="text" id="postTitle" placeholder="Post Title">
+    <textarea id="postDesc" placeholder="Post Description"></textarea>
+    <input type="file" id="postMedia" multiple>
+    <button onclick="createPost()">Upload Post</button>
+    <button onclick="logout()">Logout</button>
+  </div>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
-import { getFirestore, doc, setDoc, addDoc, collection, updateDoc, arrayUnion, arrayRemove, getDoc, onSnapshot, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
-import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-storage.js";
+  <!-- User Panel -->
+  <div class="container hidden" id="userPanel">
+    <h2>User Feed</h2>
+    <div id="postsContainer"></div>
+    <button onclick="logout()">Logout</button>
+  </div>
 
-const firebaseConfig = {
-  apiKey: "AIzaSyBeUkZBThbCB-InSG_MlVyrW0IXeJri0ro",
-  authDomain: "nht-hacker-64ed1.firebaseapp.com",
-  projectId: "nht-hacker-64ed1",
-  storageBucket: "nht-hacker-64ed1.appspot.com",
-  messagingSenderId: "677529152619",
-  appId: "1:677529152619:web:930c952c15f3870532952e",
-  measurementId: "G-H96G9C202G"
-};
+  <!-- Online Users -->
+  <div class="container hidden" id="usersPanel">
+    <h2>Online Users</h2>
+    <div id="usersList" class="usersList"></div>
+  </div>
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-const storage = getStorage(app);
-const provider = new GoogleAuthProvider();
-const adminEmail = "niyamulislam072@gmail.com";
-let currentChatUser = null;
+  <!-- Chat Panel -->
+  <div class="container hidden" id="chatPanel">
+    <h2 id="chatWith">Chat</h2>
+    <div id="chatBox" class="chatBox"></div>
+    <div class="chatInput">
+      <input type="text" id="chatMessage" placeholder="Type message">
+      <button onclick="sendMessage()">Send</button>
+    </div>
+  </div>
 
-function showNotification(msg,type="error"){
-  const notif=document.getElementById('notification');
-  notif.innerText=msg;
-  notif.style.backgroundColor = type==="error"? "#ff4c4c":"#00ff99";
-  notif.classList.remove('hidden'); notif.classList.add('show');
-  setTimeout(()=>{ notif.classList.remove('show'); notif.classList.add('hidden'); },3000);
-}
+  <div id="notification"></div>
 
-// ================ Google Login (Popup) ================
-document.getElementById('googleLoginBtn').addEventListener('click', async ()=>{
-  try {
-    const result = await signInWithPopup(auth, provider);
-    const user = result.user;
-    await setDoc(doc(db,'users',user.uid),{
-      name: user.displayName,
-      email: user.email,
-      photo: user.photoURL,
-      role: user.email===adminEmail?"admin":"user",
-      online:true,
-      blocked:[]
-    }, { merge:true });
-    showNotification("Login successful","success");
-  } catch(e){
-    showNotification(e.message);
-  }
-});
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+    import { 
+      getAuth, GoogleAuthProvider, signInWithPopup, 
+      onAuthStateChanged, signOut 
+    } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+    import { 
+      getFirestore, doc, setDoc, addDoc, collection, updateDoc, arrayUnion, arrayRemove, getDoc, onSnapshot, query, orderBy, serverTimestamp 
+    } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-storage.js";
 
-// ================ Auth State Listener ================
-onAuthStateChanged(auth, async(user)=>{
-  if(user){
-    const docRef = doc(db,"users",user.uid);
-    await updateDoc(docRef,{online:true,lastSeen:serverTimestamp()});
+    // ====== Firebase Config ======
+    const firebaseConfig = {
+      apiKey: "AIzaSyBeUkZBThbCB-InSG_MlVyrW0IXeJri0ro",
+      authDomain: "nht-hacker-64ed1.firebaseapp.com",
+      projectId: "nht-hacker-64ed1",
+      storageBucket: "nht-hacker-64ed1.appspot.com",
+      messagingSenderId: "677529152619",
+      appId: "1:677529152619:web:930c952c15f3870532952e",
+      measurementId: "G-H96G9C202G"
+    };
 
-    if(user.email===adminEmail){
-      document.getElementById('authContainer').classList.add('hidden');
-      document.getElementById('adminPanel').classList.remove('hidden');
-    } else {
-      document.getElementById('authContainer').classList.add('hidden');
-      document.getElementById('userPanel').classList.remove('hidden');
-      document.getElementById('usersPanel').classList.remove('hidden');
-      startRealtimePosts();
-      startRealtimeUsers();
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const storage = getStorage(app);
+    const provider = new GoogleAuthProvider();
+    const adminEmail = "niyamulislam072@gmail.com";
+    let currentChatUser = null;
+
+    function showNotification(msg,type="error"){
+      const notif=document.getElementById('notification');
+      notif.innerText=msg;
+      notif.style.backgroundColor = type==="error"? "#ff4c4c":"#00ff99";
+      notif.classList.remove('hidden'); notif.classList.add('show');
+      setTimeout(()=>{ notif.classList.remove('show'); notif.classList.add('hidden'); },3000);
     }
-  } else {
-    document.getElementById('authContainer').classList.remove('hidden');
-    document.getElementById('adminPanel').classList.add('hidden');
-    document.getElementById('userPanel').classList.add('hidden');
-    document.getElementById('usersPanel').classList.add('hidden');
-    document.getElementById('chatPanel').classList.add('hidden');
-  }
-});
 
-// ================ Create Post ================
-async function createPost(){
-  const title=document.getElementById('postTitle').value.trim();
-  const desc=document.getElementById('postDesc').value.trim();
-  const files=document.getElementById('postMedia').files;
-  if(!title){ showNotification("Enter post title"); return;}
-  const mediaUrls=[];
-  for(let i=0;i<files.length;i++){
-    const fileRef=ref(storage,`posts/${Date.now()}_${files[i].name}`);
-    await uploadBytes(fileRef,files[i]);
-    mediaUrls.push(await getDownloadURL(fileRef));
-  }
-  await addDoc(collection(db,'posts'),{title,desc,mediaUrls,likes:0,comments:[],timestamp:Date.now()});
-  showNotification("Post uploaded successfully","success");
-  document.getElementById('postTitle').value="";
-  document.getElementById('postDesc').value="";
-  document.getElementById('postMedia').value="";
-}
+    // ===== Login with Google Popup =====
+    document.getElementById('googleLoginBtn').addEventListener('click', async ()=>{
+      try {
+        const result = await signInWithPopup(auth, provider);
+        const user = result.user;
 
-// ================ Real-time Posts ================
-function startRealtimePosts(){
-  const container=document.getElementById('postsContainer');
-  const q=query(collection(db,'posts'),orderBy("timestamp","desc"));
-  onSnapshot(q,(snapshot)=>{
-    container.innerHTML="";
-    snapshot.forEach(docSnap=>{
-      const post=docSnap.data();
-      const postId=docSnap.id;
-      const div=document.createElement('div');
-      div.className='post';
-      div.innerHTML=`
-        <h3>${post.title}</h3>
-        <p>${post.desc}</p>
-        <div class="post-media">
-          ${(post.mediaUrls||[]).map(url=>{
-            if(url.match(/\.(mp4|webm)$/)) return `<video src="${url}" controls width="100%"></video>`;
-            else if(url.match(/\.(mp3|wav)$/)) return `<audio src="${url}" controls></audio>`;
-            else return `<a href="${url}" target="_blank">Download File</a>`;
-          }).join('<br>')}
-        </div>
-        <p><span style="cursor:pointer" onclick="likePost('${postId}')">👍 ${post.likes}</span></p>
-        <div class="comments">
-          ${(post.comments||[]).map(c=>`<p><strong>${c.user}:</strong> ${c.text}</p>`).join('')}
-          <input type="text" id="comment_${postId}" placeholder="Add comment">
-          <button onclick="addComment('${postId}')">Comment</button>
-        </div>
-      `;
-      container.appendChild(div);
+        await setDoc(doc(db,'users',user.uid),{
+          name: user.displayName,
+          email: user.email,
+          photo: user.photoURL,
+          role: user.email===adminEmail ? "admin" : "user",
+          online: true,
+          blocked:[]
+        },{merge:true});
+
+        showNotification("Login successful","success");
+
+      } catch(e) {
+        showNotification(e.message);
+      }
     });
-  });
-}
 
-// ================ Like & Comment ================
-async function likePost(postId){
-  const postRef=doc(db,'posts',postId);
-  const postSnap=await getDoc(postRef);
-  if(postSnap.exists()) await updateDoc(postRef,{likes:(postSnap.data().likes||0)+1});
-}
-async function addComment(postId){
-  const input=document.getElementById(`comment_${postId}`);
-  const text=input.value.trim(); if(!text) return;
-  const user=auth.currentUser;
-  await updateDoc(doc(db,'posts',postId),{comments: arrayUnion({user:user.displayName,text})});
-  input.value="";
-}
+    // ===== Auth State Change =====
+    onAuthStateChanged(auth, async(user)=>{
+      if(user){
+        const docRef=doc(db,"users",user.uid);
+        await updateDoc(docRef,{online:true,lastSeen:serverTimestamp()});
+        if(user.email===adminEmail){
+          document.getElementById('authContainer').classList.add('hidden');
+          document.getElementById('adminPanel').classList.remove('hidden');
+        }else{
+          document.getElementById('authContainer').classList.add('hidden');
+          document.getElementById('userPanel').classList.remove('hidden');
+          document.getElementById('usersPanel').classList.remove('hidden');
+          startRealtimePosts();
+          startRealtimeUsers();
+        }
+      } else {
+        document.getElementById('authContainer').classList.remove('hidden');
+        document.getElementById('adminPanel').classList.add('hidden');
+        document.getElementById('userPanel').classList.add('hidden');
+        document.getElementById('usersPanel').classList.add('hidden');
+        document.getElementById('chatPanel').classList.add('hidden');
+      }
+    });
 
-// ================ Real-time Users ================
-function startRealtimeUsers(){
-  const list=document.getElementById("usersList");
-  const meRef = doc(db,"users",auth.currentUser.uid);
-  onSnapshot(meRef,(docSnap)=>{
-    auth.currentUserBlocked = docSnap.data().blocked || [];
-    onSnapshot(collection(db,"users"),(snapshot)=>{
-      list.innerHTML="";
-      snapshot.forEach(uSnap=>{
-        const u = uSnap.data();
-        if(u.email === auth.currentUser.email) return;
-        if(auth.currentUserBlocked.includes(uSnap.id)) return;
-        const isBlockedByThem = (u.blocked||[]).includes(auth.currentUser.uid);
-        list.innerHTML += `
-          <div>
-            <img src="${u.photo}" width="30" style="border-radius:50%"> 
-            ${u.name} ${u.online?"🟢":"⚪"} 
-            ${isBlockedByThem 
-              ? `<span style="color:#f55;font-size:12px;">Blocked You</span>` 
-              : `<button onclick="openChat('${uSnap.id}','${u.name}')">Chat</button>
-                 <button onclick="blockUser('${uSnap.id}')">Block</button>`}
-          </div>
-        `;
+    // ===== Post System =====
+    async function createPost(){
+      const title=document.getElementById('postTitle').value.trim();
+      const desc=document.getElementById('postDesc').value.trim();
+      const files=document.getElementById('postMedia').files;
+      if(!title){ showNotification("Enter post title"); return;}
+      const mediaUrls=[];
+      for(let i=0;i<files.length;i++){
+        const fileRef=ref(storage,`posts/${Date.now()}_${files[i].name}`);
+        await uploadBytes(fileRef,files[i]);
+        mediaUrls.push(await getDownloadURL(fileRef));
+      }
+      await addDoc(collection(db,'posts'),{title,desc,mediaUrls,likes:0,comments:[],timestamp:Date.now()});
+      showNotification("Post uploaded successfully","success");
+      document.getElementById('postTitle').value="";
+      document.getElementById('postDesc').value="";
+      document.getElementById('postMedia').value="";
+    }
+
+    function startRealtimePosts(){
+      const container=document.getElementById('postsContainer');
+      const q=query(collection(db,'posts'),orderBy("timestamp","desc"));
+      onSnapshot(q,(snapshot)=>{
+        container.innerHTML="";
+        snapshot.forEach(docSnap=>{
+          const post=docSnap.data();
+          const postId=docSnap.id;
+          const div=document.createElement('div');
+          div.className='post';
+          div.innerHTML=`
+            <h3>${post.title}</h3>
+            <p>${post.desc}</p>
+            <div class="post-media">
+              ${(post.mediaUrls||[]).map(url=>{
+                if(url.match(/\.(mp4|webm)$/)) return `<video src="${url}" controls width="100%"></video>`;
+                else if(url.match(/\.(mp3|wav)$/)) return `<audio src="${url}" controls></audio>`;
+                else return `<a href="${url}" target="_blank">Download File</a>`;
+              }).join('<br>')}
+            </div>
+            <p><span style="cursor:pointer" onclick="likePost('${postId}')">👍 ${post.likes}</span></p>
+            <div class="comments">
+              ${(post.comments||[]).map(c=>`<p><strong>${c.user}:</strong> ${c.text}</p>`).join('')}
+              <input type="text" id="comment_${postId}" placeholder="Add comment">
+              <button onclick="addComment('${postId}')">Comment</button>
+            </div>
+          `;
+          container.appendChild(div);
+        });
       });
-    });
-  });
-}
+    }
 
-// ================ Block / Unblock ================
-async function blockUser(uid){
-  await updateDoc(doc(db,"users",auth.currentUser.uid),{blocked: arrayUnion(uid)});
-  showNotification("User blocked","success");
-}
-async function unblockUser(uid){
-  await updateDoc(doc(db,"users",auth.currentUser.uid),{blocked: arrayRemove(uid)});
-  showNotification("User unblocked","success");
-}
+    async function likePost(postId){
+      const postRef=doc(db,'posts',postId);
+      const postSnap=await getDoc(postRef);
+      if(postSnap.exists()) await updateDoc(postRef,{likes:(postSnap.data().likes||0)+1});
+    }
 
-// ================ Chat System ================
-function getChatId(uid1,uid2){ return uid1 < uid2 ? `${uid1}_${uid2}` : `${uid2}_${uid1}`; }
-async function openChat(toUid,toName){
-  const meSnap = await getDoc(doc(db,"users",auth.currentUser.uid));
-  const toSnap = await getDoc(doc(db,"users",toUid));
+    async function addComment(postId){
+      const input=document.getElementById(`comment_${postId}`);
+      const text=input.value.trim(); if(!text) return;
+      const user=auth.currentUser;
+      await updateDoc(doc(db,'posts',postId),{comments: arrayUnion({user:user.displayName,text})});
+      input.value="";
+    }
 
-  if(meSnap.data().blocked?.includes(toUid)){
-    showNotification("You have blocked this user","error"); return;
-  }
-  if(toSnap.data().blocked?.includes(auth.currentUser.uid)){
-    showNotification("You are blocked by this user","error"); return;
-  }
+    // ===== Users List =====
+    function startRealtimeUsers(){
+      const list=document.getElementById("usersList");
+      const meRef = doc(db,"users",auth.currentUser.uid);
+      onSnapshot(meRef,(docSnap)=>{
+        auth.currentUserBlocked = docSnap.data().blocked || [];
+        onSnapshot(collection(db,"users"),(snapshot)=>{
+          list.innerHTML="";
+          snapshot.forEach(uSnap=>{
+            const u = uSnap.data();
+            if(u.email === auth.currentUser.email) return;
+            if(auth.currentUserBlocked.includes(uSnap.id)) return;
+            const isBlockedByThem = (u.blocked||[]).includes(auth.currentUser.uid);
 
-  currentChatUser = toUid;
-  document.getElementById("chatWith").innerText = "Chat with "+toName;
-  document.getElementById("chatPanel").classList.remove("hidden");
+            list.innerHTML += `
+              <div>
+                <img src="${u.photo}" width="30" style="border-radius:50%"> 
+                ${u.name} ${u.online?"🟢":"⚪"} 
+                ${isBlockedByThem 
+                  ? `<span style="color:#f55;font-size:12px;">Blocked You</span>` 
+                  : `<button onclick="openChat('${uSnap.id}','${u.name}')">Chat</button>
+                     <button onclick="blockUser('${uSnap.id}')">Block</button>`}
+              </div>
+            `;
+          });
+        });
+      });
+    }
 
-  const chatId = getChatId(auth.currentUser.uid, toUid);
-  const q = query(collection(db,"chats",chatId,"messages"), orderBy("timestamp"));
-  
-  onSnapshot(q,(snapshot)=>{
-    const box = document.getElementById("chatBox");
-    box.innerHTML = "";
-    snapshot.forEach(msg=>{
-      const m = msg.data();
-      box.innerHTML += `<p><b>${m.from===auth.currentUser.uid?"Me":"Them"}:</b> ${m.text}</p>`;
-    });
-    box.scrollTop = box.scrollHeight;
-  });
-}
-async function sendMessage(){
-  const text = document.getElementById("chatMessage").value.trim();
-  if(!text || !currentChatUser) return;
+    async function blockUser(uid){
+      await updateDoc(doc(db,"users",auth.currentUser.uid),{
+        blocked: arrayUnion(uid)
+      });
+      showNotification("User blocked","success");
+    }
 
-  const meSnap = await getDoc(doc(db,"users",auth.currentUser.uid));
-  const toSnap = await getDoc(doc(db,"users",currentChatUser));
+    async function unblockUser(uid){
+      await updateDoc(doc(db,"users",auth.currentUser.uid),{
+        blocked: arrayRemove(uid)
+      });
+      showNotification("User unblocked","success");
+    }
 
-  if(meSnap.data().blocked?.includes(currentChatUser)){
-    showNotification("You have blocked this user","error"); return;
-  }
-  if(toSnap.data().blocked?.includes(auth.currentUser.uid)){
-    showNotification("You are blocked by this user","error"); return;
-  }
+    // ===== Chat System =====
+    function getChatId(uid1,uid2){ return uid1 < uid2 ? `${uid1}_${uid2}` : `${uid2}_${uid1}`; }
 
-  const chatId = getChatId(auth.currentUser.uid, currentChatUser);
-  await addDoc(collection(db,"chats",chatId,"messages"),{
-    from: auth.currentUser.uid,
-    text,
-    timestamp: serverTimestamp()
-  });
-  document.getElementById("chatMessage").value="";
-}
+    async function openChat(toUid,toName){
+      const meSnap = await getDoc(doc(db,"users",auth.currentUser.uid));
+      const toSnap = await getDoc(doc(db,"users",toUid));
 
-// ================ Logout ================
-function logout(){
-  const userRef = doc(db,"users",auth.currentUser.uid);
-  updateDoc(userRef,{online:false});
-  signOut(auth).then(()=>{
-    document.getElementById('authContainer').classList.remove('hidden');
-    document.getElementById('adminPanel').classList.add('hidden');
-    document.getElementById('userPanel').classList.add('hidden');
-    document.getElementById('usersPanel').classList.add('hidden');
-    document.getElementById('chatPanel').classList.add('hidden');
-  });
-}
-</script>
+      if(meSnap.data().blocked?.includes(toUid)){
+        showNotification("You have blocked this user","error"); 
+        return;
+      }
+      if(toSnap.data().blocked?.includes(auth.currentUser.uid)){
+        showNotification("You are blocked by this user","error");
+        return;
+      }
 
+      currentChatUser = toUid;
+      document.getElementById("chatWith").innerText = "Chat with "+toName;
+      document.getElementById("chatPanel").classList.remove("hidden");
+
+      const chatId = getChatId(auth.currentUser.uid, toUid);
+      const q = query(collection(db,"chats",chatId,"messages"), orderBy("timestamp"));
+      
+      onSnapshot(q,(snapshot)=>{
+        const box = document.getElementById("chatBox");
+        box.innerHTML = "";
+        snapshot.forEach(msg=>{
+          const m = msg.data();
+          box.innerHTML += `<p><b>${m.from===auth.currentUser.uid?"Me":"Them"}:</b> ${m.text}</p>`;
+        });
+        box.scrollTop = box.scrollHeight;
+      });
+    }
+
+    async function sendMessage(){
+      const text = document.getElementById("chatMessage").value.trim();
+      if(!text || !currentChatUser) return;
+
+      const meSnap = await getDoc(doc(db,"users",auth.currentUser.uid));
+      const toSnap = await getDoc(doc(db,"users",currentChatUser));
+
+      if(meSnap.data().blocked?.includes(currentChatUser)){
+        showNotification("You have blocked this user","error"); return;
+      }
+      if(toSnap.data().blocked?.includes(auth.currentUser.uid)){
+        showNotification("You are blocked by this user","error"); return;
+      }
+
+      const chatId = getChatId(auth.currentUser.uid, currentChatUser);
+      await addDoc(collection(db,"chats",chatId,"messages"),{
+        from: auth.currentUser.uid,
+        text,
+        timestamp: serverTimestamp()
+      });
+      document.getElementById("chatMessage").value="";
+    }
+
+    // ===== Logout =====
+    function logout(){
+      const userRef = doc(db,"users",auth.currentUser.uid);
+      updateDoc(userRef,{online:false});
+      signOut(auth).then(()=>{
+        document.getElementById('authContainer').classList.remove('hidden');
+        document.getElementById('adminPanel').classList.add('hidden');
+        document.getElementById('userPanel').classList.add('hidden');
+        document.getElementById('usersPanel').classList.add('hidden');
+        document.getElementById('chatPanel').classList.add('hidden');
+      });
+    }
+
+    // expose functions globally
+    window.createPost = createPost;
+    window.likePost = likePost;
+    window.addComment = addComment;
+    window.openChat = openChat;
+    window.sendMessage = sendMessage;
+    window.blockUser = blockUser;
+    window.unblockUser = unblockUser;
+    window.logout = logout;
+  </script>
 </body>
 </html>
